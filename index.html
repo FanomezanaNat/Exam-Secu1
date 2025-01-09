@@ -6,7 +6,6 @@
     <title>Séquence Forbidden</title>
     <script type="text/javascript" src="https://09bd26e5e726.eu-west-3.captcha-sdk.awswaf.com/09bd26e5e726/jsapi.js" defer></script>
     <script type="text/javascript" src="config.js" defer></script>
-    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <h1>Entrez un nombre entre 1 et 1000</h1>
@@ -28,7 +27,7 @@
             var container = document.querySelector("#my-captcha-container");
             
             AwsWafCaptcha.renderCaptcha(container, {
-                apiKey: proccess.env.API.KEY,
+                apiKey: window.WAF_API_KEY,
                 onSuccess: captchaExampleSuccessFunction,
                 onError: captchaExampleErrorFunction,
             });
