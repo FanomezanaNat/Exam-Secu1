@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Séquence Forbidden</title>
     <script type="text/javascript" src="https://09bd26e5e726.eu-west-3.captcha-sdk.awswaf.com/09bd26e5e726/jsapi.js" defer></script>
+    <script type="text/javascript" src="config.js" defer></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -27,7 +28,7 @@
             var container = document.querySelector("#my-captcha-container");
             
             AwsWafCaptcha.renderCaptcha(container, {
-                apiKey: "...API key goes here...",
+                apiKey: window.WAF_API_KEY,
                 onSuccess: captchaExampleSuccessFunction,
                 onError: captchaExampleErrorFunction,
             });
@@ -69,12 +70,10 @@
                 })
                 .then(response => {
                     if (response.ok) {
-                        // Si la réponse est OK, ajouter une ligne à la séquence
                         sequenceContainer.innerHTML += `<div>${current}. Forbidden</div>`;
                         current++;
-                        setTimeout(nextStep, 1000); // Continuer après 1 seconde
+                        setTimeout(nextStep, 1000); // 
                     } else if (response.status === 405) {
-                        // Si le statut est 405, afficher le captcha
                         showMyCaptcha();
                     } else if (response.status === 403) {
                         // Si le statut est 403, continuer sans captcha
