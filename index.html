@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Séquence Forbidden</title>
+    <script type="text/javascript" src="https://09bd26e5e726.eu-west-3.captcha-sdk.awswaf.com/09bd26e5e726/jsapi.js" defer></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Entrez un nombre entre 1 et 1000</h1>
+    <form id="number-form">
+        <input type="number" id="number-input" min="1" max="1000" required>
+        <button type="submit">Générer la séquence</button>
+    </form>
+
+    <div id="sequence-container"></div>
+
+    <div id="my-captcha-container">
+    </div>
+
+    <script>
+        let wafToken = null;
+        let captchaSolved = false;
+
+        function showMyCaptcha() {
+            var container = document.querySelector("#my-captcha-container");
+            
+            AwsWafCaptcha.renderCaptcha(container, {
+                apiKey: "...API key goes here...",
+                onSuccess: captchaExampleSuccessFunction,
+                onError: captchaExampleErrorFunction,
+            });
+        }
+
+        function captchaExampleSuccessFunction(token) {
+            wafToken = token;
+            captchaSolved = true;
+            // Une fois le captcha résolu, on peut continuer la séquence
+            continueSequence();
+        }
+
+        function captchaExampleErrorFunction(error) {
+            console.error('Captcha error:', error);
+        }
+
+        function fetchWithCaptcha(url, options) {
+            if (!wafToken) {
+                showMyCaptcha();
+                return Promise.reject('Captcha required');
+            }
+
+            options.headers = options.headers || {};
+            options.headers['X-Aws-Waf-Token'] = wafToken;
+
+            return fetch(url, options);
+        }
+
+        function continueSequence() {
+            const sequenceContainer = document.getElementById('sequence-container');
+            const N = parseInt(document.getElementById('number-input').value, 10);
+            let current = 1;
+
+            function nextStep() {
+                if (current > N) return;
+
+                fetch('https://api.prod.jcloudify.com/whoami', {
+                    method: 'GET'
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Si la réponse est OK, ajouter une ligne à la séquence
+                        sequenceContainer.innerHTML += `<div>${current}. Forbidden</div>`;
+                        current++;
+                        setTimeout(nextStep, 1000); // Continuer après 1 seconde
+                    } else if (response.status === 405) {
+                        // Si le statut est 405, afficher le captcha
+                        showMyCaptcha();
+                    } else if (response.status === 403) {
+                        // Si le statut est 403, continuer sans captcha
+                        sequenceContainer.innerHTML += `<div>${current}. Forbidden (403)</div>`;
+                        current++;
+                        setTimeout(nextStep, 1000); // Continuer après 1 seconde
+                    } else {
+                        console.error('Erreur lors de la requête:', response.statusText);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                });
+            }
+
+            nextStep();
+        }
+
+        document.getElementById('number-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const sequenceContainer = document.getElementById('sequence-container');
+            sequenceContainer.innerHTML = ''; // Effacer la séquence précédente
+            continueSequence();
+        });
+    </script>
+</body>
+</html>
